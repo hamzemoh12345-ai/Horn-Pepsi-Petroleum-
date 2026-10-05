@@ -1,656 +1,746 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Petroleum & Diesel Calculator</title>
-    <style>
-        * {
-            box-sizing: border-box;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Petroleum &amp; Diesel Calculator</title>
+<style>
+    :root {
+        --border: #e5e7eb;
+        --line: #eef1f5;
+        --muted: #6b7280;
+        --blue: #2563eb;
+        --blue-dark: #1d4ed8;
+        --green: #15803d;
+    }
 
+    * { box-sizing: border-box; }
+
+    html { -webkit-text-size-adjust: 100%; }
+
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+        margin: 0;
+        padding: 12px;
+        background-color: #f4f6f9;
+        color: #1f2937;
+        line-height: 1.4;
+    }
+
+    .app { max-width: 1100px; margin: 0 auto; }
+
+    /* ---------- TOP BAR ---------- */
+    .action-bar {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 14px;
+    }
+
+    .btn-print {
+        background-color: #10b981;
+        color: #fff;
+        border: none;
+        padding: 12px 20px;
+        font-size: 15px;
+        font-weight: 700;
+        border-radius: 8px;
+        cursor: pointer;
+        box-shadow: 0 2px 4px rgba(0,0,0,.1);
+    }
+    .btn-print:hover { background-color: #059669; }
+
+    /* ---------- SECTION TITLES ---------- */
+    .section-title {
+        margin: 22px 0 12px;
+        color: #1f2937;
+        font-size: 17px;
+        border-bottom: 2px solid var(--blue);
+        padding-bottom: 6px;
+    }
+
+    /* ---------- CARD ---------- */
+    .card {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        box-shadow: 0 1px 3px rgba(0,0,0,.06);
+        overflow: hidden;
+        margin-bottom: 16px;
+    }
+
+    /* ---------- INPUTS ---------- */
+    input {
+        width: 100%;
+        padding: 10px 12px;
+        font-size: 15px;
+        font-family: inherit;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        text-align: right;
+        background: #fff;
+        color: #111827;
+        min-width: 0;
+    }
+    input:focus {
+        outline: none;
+        border-color: var(--blue);
+        box-shadow: 0 0 0 3px rgba(37,99,235,.15);
+    }
+    input.text-left, .debt-name { text-align: left; }
+
+    /* ---------- METER ROWS (label / inputs / result) ---------- */
+    .calc-row {
+        display: grid;
+        grid-template-columns: 150px minmax(0,1fr) 240px;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 14px;
+        border-bottom: 1px solid var(--line);
+    }
+    .calc-row:last-child { border-bottom: none; }
+
+    .row-label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #374151;
+    }
+
+    .row-body {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 0;
+    }
+    .row-body input { flex: 1 1 0; }
+
+    .op {
+        flex: 0 0 auto;
+        font-weight: 700;
+        color: var(--muted);
+    }
+
+    .row-result {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #374151;
+        white-space: nowrap;
+    }
+    .row-result span {
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--blue-dark);
+    }
+
+    /* ---------- EQUATION CHAINS ---------- */
+    .eq {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--line);
+    }
+    .eq:last-child { border-bottom: none; }
+
+    .eq-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .eq-label {
+        font-size: 13px;
+        color: #374151;
+        white-space: nowrap;
+    }
+    .eq-item input { width: 100px; flex: 0 0 auto; }
+
+    .eq-value {
+        font-weight: 700;
+        color: var(--blue-dark);
+        background: #eff6ff;
+        border-radius: 6px;
+        padding: 7px 10px;
+        min-width: 62px;
+        text-align: right;
+    }
+    .eq-item.is-result .eq-value {
+        color: var(--green);
+        background: #f0fdf4;
+    }
+    .eq-item.is-result .eq-label { font-weight: 700; }
+
+    .eq-op {
+        font-weight: 700;
+        color: var(--muted);
+        flex: 0 0 auto;
+    }
+
+    /* ---------- TWO COLUMN (CASH / DOLLARS) ---------- */
+    .two-col {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+
+    .line {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 8px 14px;
+        border-bottom: 1px solid var(--line);
+    }
+    .line:last-child { border-bottom: none; }
+    .line .row-label { flex: 1 1 auto; font-weight: 500; }
+    .line input { flex: 0 0 45%; max-width: 180px; }
+
+    .line .value {
+        flex: 0 0 auto;
+        min-width: 96px;
+        text-align: right;
+        font-weight: 700;
+        color: var(--blue-dark);
+        background: #eff6ff;
+        border-radius: 6px;
+        padding: 7px 10px;
+    }
+    .line .value.green { color: var(--green); background: #f0fdf4; }
+
+    /* ---------- DEBT TABLE ---------- */
+    .btn-add {
+        background-color: var(--blue);
+        color: #fff;
+        border: none;
+        padding: 13px 18px;
+        font-size: 14px;
+        font-weight: 700;
+        border-radius: 8px;
+        cursor: pointer;
+        width: 100%;
+        margin-bottom: 12px;
+    }
+    .btn-add:hover { background-color: var(--blue-dark); }
+
+    .debt-head {
+        display: grid;
+        grid-template-columns: 1fr 200px 90px;
+        gap: 10px;
+        padding: 10px 14px;
+        background: #f3f4f6;
+        font-size: 13px;
+        font-weight: 700;
+        color: #374151;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .debt-row {
+        display: grid;
+        grid-template-columns: 1fr 200px 90px;
+        gap: 10px;
+        align-items: center;
+        padding: 10px 14px;
+        border-bottom: 1px solid var(--line);
+    }
+
+    .debt-total {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 13px 14px;
+        background: #f0fdf4;
+        font-weight: 700;
+        color: var(--green);
+        border-top: 1px solid var(--border);
+    }
+
+    .btn-remove {
+        background-color: #ef4444;
+        color: #fff;
+        border: none;
+        padding: 9px 10px;
+        font-size: 13px;
+        border-radius: 8px;
+        cursor: pointer;
+        width: 100%;
+    }
+    .btn-remove:hover { background-color: #dc2626; }
+
+    /* =========================================================
+       MOBILE  (<= 700px)
+       ========================================================= */
+    @media (max-width: 700px) {
+        body { padding: 8px; }
+
+        .action-bar { justify-content: stretch; }
+        .btn-print { width: 100%; }
+
+        .section-title { font-size: 16px; margin-top: 18px; }
+
+        /* --- meter rows stack vertically --- */
+        .calc-row {
+            grid-template-columns: 1fr;
+            gap: 8px;
+            padding: 12px;
+        }
+        .row-label { font-size: 14px; }
+        .row-result {
+            justify-content: space-between;
+            background: #f8fafc;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 9px 12px;
+            white-space: normal;
+        }
+        .row-result span { font-size: 16px; }
+
+        /* --- equations stack vertically --- */
+        .eq {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 5px;
+            padding: 12px;
+        }
+        .eq-item {
+            justify-content: space-between;
+            background: #f8fafc;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 9px 12px;
+        }
+        .eq-item.is-result {
+            background: #f0fdf4;
+            border-color: #bbf7d0;
+        }
+        .eq-item input { width: 140px; }
+        .eq-label { font-size: 14px; white-space: normal; }
+        .eq-op { text-align: center; padding: 1px 0; font-size: 15px; }
+
+        /* --- cash / dollars stack --- */
+        .two-col { grid-template-columns: 1fr; gap: 14px; }
+
+        .line { padding: 9px 12px; gap: 10px; }
+        .line input { flex: 1 1 auto; max-width: none; }
+        .line .value { min-width: 84px; }
+
+        /* --- debt rows become cards --- */
+        .debt-head { display: none; }
+        .debt-row {
+            grid-template-columns: 1fr auto;
+            grid-template-areas:
+                "name   name"
+                "amount remove";
+            gap: 8px;
+            padding: 12px;
+            background: #fbfcfe;
+        }
+        .debt-name   { grid-area: name; }
+        .debt-amount { grid-area: amount; }
+        .btn-remove  { grid-area: remove; width: auto; padding: 10px 16px; }
+
+        /* larger fonts stop iOS auto-zoom */
+        input { font-size: 16px; padding: 11px 12px; }
+    }
+
+    /* =========================================================
+       PRINT
+       ========================================================= */
+    @media print {
         body {
-            font-family: Arial, sans-serif;
-            margin: 10px;
+            background: #fff;
             padding: 0;
-            background-color: #f4f6f9;
-            color: #333;
+            margin: 0;
+            font-size: 11pt;
         }
+        .action-bar,
+        .btn-add,
+        .btn-remove { display: none !important; }
 
-        .table-container {
-            max-width: 1000px;
-            margin: 0 auto;
+        .card {
+            box-shadow: none;
+            border: 1px solid #ccc;
+            page-break-inside: avoid;
+            margin-bottom: 10px;
         }
-
-        /* Action bar for printing */
-        .action-bar {
-            text-align: right;
-            margin-bottom: 15px;
-        }
-
-        .btn-print {
-            background-color: #10b981;
-            color: white;
-            border: none;
-            padding: 10px 18px;
-            font-size: 15px;
-            font-weight: bold;
-            border-radius: 6px;
-            cursor: pointer;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .btn-print:hover {
-            background-color: #059669;
-        }
-
-        .section-title {
-            margin: 20px 0 10px 0;
-            color: #1f2937;
-            font-size: 18px;
-            border-bottom: 2px solid #2563eb;
-            padding-bottom: 5px;
-        }
-
-        /* Responsive table wrapper for horizontal scroll on narrow mobile screens */
-        .table-responsive {
-            width: 100%;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            margin-bottom: 15px;
-        }
-
-        table {
-            border-collapse: collapse;
-            width: 100%;
-            min-width: 600px; /* Ensures table layout remains readable on mobile */
-            background-color: #ffffff;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-
-        .min-auto {
-            min-width: 100% !important;
-        }
-
-        th {
-            background-color: #f3f4f6;
-            border: 1px solid #d1d5db;
-            padding: 8px;
-            font-size: 13px;
-            color: #374151;
-            text-align: center;
-        }
-
-        td {
-            border: 1px solid #d1d5db;
-            padding: 6px 8px;
-            text-align: center;
-            font-size: 13px;
-            vertical-align: middle;
-        }
-
-        .label-col {
-            text-align: left;
-            font-weight: 500;
-            color: #374151;
-            white-space: nowrap;
-        }
-
-        .input-col {
-            padding: 4px;
-        }
-
-        .operator-col {
-            width: 28px;
-            font-weight: bold;
-            color: #6b7280;
-            background-color: #f9fafb;
-        }
-
-        .result-col {
-            text-align: left;
-            font-weight: bold;
-            color: #1f2937;
-            background-color: #f9fafb;
-            white-space: nowrap;
-        }
-
-        .sum-val {
-            font-weight: bold;
-            color: #1d4ed8;
-            background-color: #eff6ff;
-            text-align: right;
-            padding-right: 8px;
-        }
-
-        .grand-res {
-            font-weight: bold;
-            color: #15803d;
-            background-color: #f0fdf4;
-            text-align: right;
-            padding-right: 8px;
-        }
+        .eq { padding: 6px 10px; }
+        .calc-row { padding: 6px 10px; }
 
         input {
-            width: 100%;
-            padding: 8px 6px;
-            font-size: 14px;
-            border: 1px solid #9ca3af;
-            border-radius: 4px;
-            text-align: right;
-            background-color: #fff;
-            box-sizing: border-box;
+            border: none !important;
+            background: transparent !important;
+            padding: 0 4px !important;
+            font-weight: 700;
+            font-size: 11pt;
+            box-shadow: none !important;
         }
+        input::placeholder { color: transparent; }
 
-        input.text-left {
-            text-align: left;
-        }
-
-        input:focus {
-            outline: none;
-            border-color: #2563eb;
-            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
-        }
-
-        .btn-add {
-            background-color: #2563eb;
-            color: #ffffff;
-            border: none;
-            padding: 10px 16px;
-            font-size: 14px;
-            font-weight: bold;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-bottom: 10px;
-            width: 100%;
-        }
-
-        .btn-add:hover {
-            background-color: #1d4ed8;
-        }
-
-        .btn-remove {
-            background-color: #ef4444;
-            color: white;
-            border: none;
-            padding: 6px 10px;
-            font-size: 12px;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        .btn-remove:hover {
-            background-color: #dc2626;
-        }
-
-        .two-column-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-
-        @media (max-width: 768px) {
-            body {
-                margin: 5px;
-            }
-            .two-column-grid {
-                grid-template-columns: 1fr;
-                gap: 0;
-            }
-            .btn-add {
-                padding: 12px;
-            }
-        }
-
-        /* PRINT STYLES - Optimized for Mobile & Desktop Printing */
-        @media print {
-            body {
-                background-color: #ffffff;
-                margin: 0;
-                padding: 0;
-                font-size: 11pt;
-            }
-
-            .action-bar, .btn-add, .btn-remove, th:last-child, td:last-child:has(.btn-remove) {
-                display: none !important;
-            }
-
-            .table-container {
-                max-width: 100%;
-            }
-
-            .table-responsive {
-                overflow: visible !important;
-            }
-
-            table {
-                min-width: 100% !important;
-                box-shadow: none;
-                page-break-inside: avoid;
-            }
-
-            input {
-                border: none !important;
-                background: transparent !important;
-                padding: 0 !important;
-                font-weight: bold;
-            }
-
-            input::placeholder {
-                color: transparent;
-            }
-
-            .section-title {
-                margin-top: 15px;
-                border-bottom: 1px solid #000;
-            }
-        }
-    </style>
+        .eq-value,
+        .line .value { background: transparent !important; padding: 0 4px !important; }
+        .section-title { margin-top: 14px; border-bottom: 1px solid #000; }
+    }
+</style>
 </head>
 <body>
 
-    <div class="table-container">
+<div class="app">
 
-        <!-- PRINT BUTTON -->
-        <div class="action-bar">
-            <button class="btn-print" onclick="window.print()">🖨️ Print / Save PDF</button>
-        </div>
-
-        <h3 class="section-title">Part 1: Meter & Sales Calculations</h3>
-
-        <!-- TABLE 1: Individual Subtractions -->
-        <div class="table-responsive">
-            <table>
-                <colgroup>
-                    <col style="width: 15%;">
-                    <col style="width: 20%;">
-                    <col style="width: 4%;">
-                    <col style="width: 20%;">
-                    <col style="width: 4%;">
-                    <col style="width: 37%;">
-                </colgroup>
-                <tr>
-                    <td class="label-col">Petrol 1</td>
-                    <td class="input-col"><input type="number" id="p1_a" oninput="calculate()" placeholder="0"></td>
-                    <td class="operator-col">-</td>
-                    <td class="input-col"><input type="number" id="p1_b" oninput="calculate()" placeholder="0"></td>
-                    <td class="operator-col">=</td>
-                    <td class="result-col">Total petrol 1: <span id="res_p1">0</span></td>
-                </tr>
-                <tr>
-                    <td class="label-col">Petrol 2</td>
-                    <td class="input-col"><input type="number" id="p2_a" oninput="calculate()" placeholder="0"></td>
-                    <td class="operator-col">-</td>
-                    <td class="input-col"><input type="number" id="p2_b" oninput="calculate()" placeholder="0"></td>
-                    <td class="operator-col">=</td>
-                    <td class="result-col">Total petrol 2: <span id="res_p2">0</span></td>
-                </tr>
-                <tr>
-                    <td class="label-col">Diesel 1</td>
-                    <td class="input-col"><input type="number" id="d1_a" oninput="calculate()" placeholder="0"></td>
-                    <td class="operator-col">-</td>
-                    <td class="input-col"><input type="number" id="d1_b" oninput="calculate()" placeholder="0"></td>
-                    <td class="operator-col">=</td>
-                    <td class="result-col">Total diseal 1: <span id="res_d1">0</span></td>
-                </tr>
-                <tr>
-                    <td class="label-col">Diesel 2</td>
-                    <td class="input-col"><input type="number" id="d2_a" oninput="calculate()" placeholder="0"></td>
-                    <td class="operator-col">-</td>
-                    <td class="input-col"><input type="number" id="d2_b" oninput="calculate()" placeholder="0"></td>
-                    <td class="operator-col">=</td>
-                    <td class="result-col">Total diseal 2: <span id="res_d2">0</span></td>
-                </tr>
-            </table>
-        </div>
-
-        <!-- TABLE 2: Additions for Petrol & Diesel Totals -->
-        <div class="table-responsive">
-            <table>
-                <tr>
-                    <td class="label-col">Total petrol 1</td>
-                    <td class="input-col sum-val" id="sum_p1">0</td>
-                    <td class="operator-col">+</td>
-                    <td class="label-col">Total petrol 2</td>
-                    <td class="input-col sum-val" id="sum_p2">0</td>
-                    <td class="operator-col">=</td>
-                    <td class="label-col">Total petrol 1, 2</td>
-                    <td class="grand-res" id="total_p_combined">0</td>
-                </tr>
-                <tr>
-                    <td class="label-col">Total diseal 1</td>
-                    <td class="input-col sum-val" id="sum_d1">0</td>
-                    <td class="operator-col">+</td>
-                    <td class="label-col">Total diseal 2</td>
-                    <td class="input-col sum-val" id="sum_d2">0</td>
-                    <td class="operator-col">=</td>
-                    <td class="label-col">Total diseal 1, 2</td>
-                    <td class="grand-res" id="total_d_combined">0</td>
-                </tr>
-            </table>
-        </div>
-
-        <!-- TABLE 3: Invoice Subtraction and Rate Multiplication -->
-        <div class="table-responsive">
-            <table>
-                <tr>
-                    <td class="label-col">Total of petrol 1, 2</td>
-                    <td class="input-col sum-val" id="t3_p_combined">0</td>
-                    <td class="operator-col">-</td>
-                    <td class="label-col">Invoice</td>
-                    <td class="input-col"><input type="number" id="p_invoice" oninput="calculate()" placeholder="0"></td>
-                    <td class="operator-col">=</td>
-                    <td class="label-col">Total</td>
-                    <td class="input-col sum-val" id="p_subtotal">0</td>
-                    <td class="operator-col">*</td>
-                    <td class="label-col">Rate of money</td>
-                    <td class="input-col"><input type="number" id="p_rate" oninput="calculate()" placeholder="0"></td>
-                    <td class="operator-col">=</td>
-                    <td class="label-col">Total 1</td>
-                    <td class="grand-res" id="p_final_total">0</td>
-                </tr>
-                <tr>
-                    <td class="label-col">Total of diseal 1, 2</td>
-                    <td class="input-col sum-val" id="t3_d_combined">0</td>
-                    <td class="operator-col">-</td>
-                    <td class="label-col">Invoice</td>
-                    <td class="input-col"><input type="number" id="d_invoice" oninput="calculate()" placeholder="0"></td>
-                    <td class="operator-col">=</td>
-                    <td class="label-col">Total</td>
-                    <td class="input-col sum-val" id="d_subtotal">0</td>
-                    <td class="operator-col">*</td>
-                    <td class="label-col">Rate of money</td>
-                    <td class="input-col"><input type="number" id="d_rate" oninput="calculate()" placeholder="0"></td>
-                    <td class="operator-col">=</td>
-                    <td class="label-col">Total 2</td>
-                    <td class="grand-res" id="d_final_total">0</td>
-                </tr>
-            </table>
-        </div>
-
-        <!-- TABLE 4: Final Grand Calculation (All Total) -->
-        <div class="table-responsive">
-            <table>
-                <tr>
-                    <td class="label-col">Total 1</td>
-                    <td class="input-col sum-val" id="t4_total1">0</td>
-                    <td class="operator-col">+</td>
-                    <td class="label-col">Total 2</td>
-                    <td class="input-col sum-val" id="t4_total2">0</td>
-                    <td class="operator-col">+</td>
-                    <td class="label-col">Top up</td>
-                    <td class="input-col"><input type="number" id="top_up" oninput="calculate()" placeholder="0"></td>
-                    <td class="operator-col">+</td>
-                    <td class="label-col">Selling</td>
-                    <td class="input-col"><input type="number" id="selling" oninput="calculate()" placeholder="0"></td>
-                    <td class="operator-col">-</td>
-                    <td class="label-col">Discount</td>
-                    <td class="input-col"><input type="number" id="discount" oninput="calculate()" placeholder="0"></td>
-                    <td class="operator-col">=</td>
-                    <td class="label-col">All total</td>
-                    <td class="grand-res" id="all_total">0</td>
-                </tr>
-            </table>
-        </div>
-
-        <h3 class="section-title">Part 2: Cash, Payment & Debt Breakdown</h3>
-
-        <div class="two-column-grid">
-            <!-- CASH (LOCAL CURRENCY) TABLE -->
-            <div class="table-responsive min-auto">
-                <table class="min-auto">
-                    <tr>
-                        <td class="label-col" style="width: 45%;">Cash</td>
-                        <td class="input-col"><input type="number" id="cash_val" oninput="calculate()" placeholder="0"></td>
-                    </tr>
-                    <tr>
-                        <td class="label-col">Zaad 1</td>
-                        <td class="input-col"><input type="number" id="cash_z1" oninput="calculate()" placeholder="0"></td>
-                    </tr>
-                    <tr>
-                        <td class="label-col">Zaad 2</td>
-                        <td class="input-col"><input type="number" id="cash_z2" oninput="calculate()" placeholder="0"></td>
-                    </tr>
-                    <tr>
-                        <td class="label-col">Edahab 1</td>
-                        <td class="input-col"><input type="number" id="cash_e1" oninput="calculate()" placeholder="0"></td>
-                    </tr>
-                    <tr>
-                        <td class="label-col">Edahab 2</td>
-                        <td class="input-col"><input type="number" id="cash_e2" oninput="calculate()" placeholder="0"></td>
-                    </tr>
-                    <tr>
-                        <td class="label-col">Rate of money</td>
-                        <td class="input-col"><input type="number" id="cash_rate" oninput="calculate()" placeholder="1"></td>
-                    </tr>
-                    <tr>
-                        <td class="label-col">cashes (Sum)</td>
-                        <td class="sum-val" id="cashes_sum">0</td>
-                    </tr>
-                    <tr>
-                        <td class="label-col">totaling cash</td>
-                        <td class="grand-res" id="totaling_cash">0</td>
-                    </tr>
-                </table>
-            </div>
-
-            <!-- DOLLARS TABLE -->
-            <div class="table-responsive min-auto">
-                <table class="min-auto">
-                    <tr>
-                        <td class="label-col" style="width: 45%;">Dollars</td>
-                        <td class="input-col"><input type="number" id="usd_val" oninput="calculate()" placeholder="0"></td>
-                    </tr>
-                    <tr>
-                        <td class="label-col">Zaad 1</td>
-                        <td class="input-col"><input type="number" id="usd_z1" oninput="calculate()" placeholder="0"></td>
-                    </tr>
-                    <tr>
-                        <td class="label-col">Zaad 2</td>
-                        <td class="input-col"><input type="number" id="usd_z2" oninput="calculate()" placeholder="0"></td>
-                    </tr>
-                    <tr>
-                        <td class="label-col">Edahab 1</td>
-                        <td class="input-col"><input type="number" id="usd_e1" oninput="calculate()" placeholder="0"></td>
-                    </tr>
-                    <tr>
-                        <td class="label-col">Edahab 2</td>
-                        <td class="input-col"><input type="number" id="usd_e2" oninput="calculate()" placeholder="0"></td>
-                    </tr>
-                    <tr>
-                        <td class="label-col">cashes (Sum)</td>
-                        <td class="sum-val" id="usd_cashes_sum">0</td>
-                    </tr>
-                    <tr>
-                        <td class="label-col">total dollars</td>
-                        <td class="grand-res" id="total_dollars">0</td>
-                    </tr>
-                </table>
-            </div>
-        </div>
-
-        <!-- ALL DEBT DYNAMIC TABLE -->
-        <button class="btn-add" onclick="addDebtRow()">+ Add Debt Row</button>
-        <div class="table-responsive min-auto">
-            <table id="debt_table" class="min-auto">
-                <thead>
-                    <tr>
-                        <th style="width: 55%;">All debt</th>
-                        <th style="width: 30%;">totalling</th>
-                        <th style="width: 15%;">Action</th>
-                    </tr>
-                </thead>
-                <tbody id="debt_tbody">
-                    <tr>
-                        <td class="input-col"><input type="text" class="text-left" placeholder="Debt description / Name"></td>
-                        <td class="input-col"><input type="number" class="debt-amount" oninput="calculate()" placeholder="0"></td>
-                        <td><button class="btn-remove" onclick="removeDebtRow(this)">Remove</button></td>
-                    </tr>
-                    <tr>
-                        <td class="input-col"><input type="text" class="text-left" placeholder="Debt description / Name"></td>
-                        <td class="input-col"><input type="number" class="debt-amount" oninput="calculate()" placeholder="0"></td>
-                        <td><button class="btn-remove" onclick="removeDebtRow(this)">Remove</button></td>
-                    </tr>
-                    <tr>
-                        <td class="input-col"><input type="text" class="text-left" placeholder="Debt description / Name"></td>
-                        <td class="input-col"><input type="number" class="debt-amount" oninput="calculate()" placeholder="0"></td>
-                        <td><button class="btn-remove" onclick="removeDebtRow(this)">Remove</button></td>
-                    </tr>
-                </tbody>
-                <tfoot>
-                    <tr>
-                        <td class="label-col" style="text-align: right; font-weight: bold;">Total Debts:</td>
-                        <td class="grand-res" id="total_debt_sum">0.00</td>
-                        <td></td>
-                    </tr>
-                </tfoot>
-            </table>
-        </div>
-
-        <!-- COMBINED TOTAL TABLE -->
-        <div class="table-responsive">
-            <table>
-                <tr>
-                    <td class="label-col">Total of cash</td>
-                    <td class="input-col sum-val" id="summary_cash">0</td>
-                    <td class="operator-col">+</td>
-                    <td class="label-col">Total of dollor</td>
-                    <td class="input-col sum-val" id="summary_dollar">0</td>
-                    <td class="operator-col">+</td>
-                    <td class="label-col">Total Debts</td>
-                    <td class="input-col sum-val" id="summary_debts">0</td>
-                    <td class="operator-col">=</td>
-                    <td class="label-col">All total of cash, debts and dollor</td>
-                    <td class="grand-res" id="all_total_cash_dollar">0</td>
-                </tr>
-            </table>
-        </div>
-
-        <!-- RECONCILIATION TABLE: Linking Part 2 and Part 1 -->
-        <div class="table-responsive">
-            <table>
-                <tr>
-                    <td class="label-col">All total of cash, debts and dollor</td>
-                    <td class="input-col sum-val" id="rec_cash_dollar_debts">0.00</td>
-                    <td class="operator-col">-</td>
-                    <td class="label-col">All total of petro and diseal</td>
-                    <td class="input-col sum-val" id="rec_petro_diesel">0.00</td>
-                    <td class="operator-col">=</td>
-                    <td class="label-col">Difference / Balance</td>
-                    <td class="grand-res" id="final_difference">0.00</td>
-                </tr>
-            </table>
-        </div>
-
+    <!-- PRINT BUTTON -->
+    <div class="action-bar">
+        <button class="btn-print" onclick="window.print()">🖨️ Print / Save PDF</button>
     </div>
 
-    <script>
-        function addDebtRow() {
-            var tbody = document.getElementById('debt_tbody');
-            var tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td class="input-col"><input type="text" class="text-left" placeholder="Debt description / Name"></td>
-                <td class="input-col"><input type="number" class="debt-amount" oninput="calculate()" placeholder="0"></td>
-                <td><button class="btn-remove" onclick="removeDebtRow(this)">Remove</button></td>
-            `;
-            tbody.appendChild(tr);
-            calculate();
+    <h3 class="section-title">Part 1: Meter &amp; Sales Calculations</h3>
+
+    <!-- ===== METER SUBTRACTIONS ===== -->
+    <div class="card">
+        <div class="calc-row">
+            <div class="row-label">Petrol 1</div>
+            <div class="row-body">
+                <input type="number" inputmode="decimal" id="p1_a" oninput="calculate()" placeholder="0">
+                <span class="op">−</span>
+                <input type="number" inputmode="decimal" id="p1_b" oninput="calculate()" placeholder="0">
+            </div>
+            <div class="row-result">Total petrol 1: <span id="res_p1">0</span></div>
+        </div>
+
+        <div class="calc-row">
+            <div class="row-label">Petrol 2</div>
+            <div class="row-body">
+                <input type="number" inputmode="decimal" id="p2_a" oninput="calculate()" placeholder="0">
+                <span class="op">−</span>
+                <input type="number" inputmode="decimal" id="p2_b" oninput="calculate()" placeholder="0">
+            </div>
+            <div class="row-result">Total petrol 2: <span id="res_p2">0</span></div>
+        </div>
+
+        <div class="calc-row">
+            <div class="row-label">Diesel 1</div>
+            <div class="row-body">
+                <input type="number" inputmode="decimal" id="d1_a" oninput="calculate()" placeholder="0">
+                <span class="op">−</span>
+                <input type="number" inputmode="decimal" id="d1_b" oninput="calculate()" placeholder="0">
+            </div>
+            <div class="row-result">Total diesel 1: <span id="res_d1">0</span></div>
+        </div>
+
+        <div class="calc-row">
+            <div class="row-label">Diesel 2</div>
+            <div class="row-body">
+                <input type="number" inputmode="decimal" id="d2_a" oninput="calculate()" placeholder="0">
+                <span class="op">−</span>
+                <input type="number" inputmode="decimal" id="d2_b" oninput="calculate()" placeholder="0">
+            </div>
+            <div class="row-result">Total diesel 2: <span id="res_d2">0</span></div>
+        </div>
+    </div>
+
+    <!-- ===== ADDITIONS ===== -->
+    <div class="card">
+        <div class="eq">
+            <div class="eq-item"><span class="eq-label">Total petrol 1</span><span class="eq-value" id="sum_p1">0</span></div>
+            <span class="eq-op">+</span>
+            <div class="eq-item"><span class="eq-label">Total petrol 2</span><span class="eq-value" id="sum_p2">0</span></div>
+            <span class="eq-op">=</span>
+            <div class="eq-item is-result"><span class="eq-label">Total petrol 1, 2</span><span class="eq-value" id="total_p_combined">0</span></div>
+        </div>
+
+        <div class="eq">
+            <div class="eq-item"><span class="eq-label">Total diesel 1</span><span class="eq-value" id="sum_d1">0</span></div>
+            <span class="eq-op">+</span>
+            <div class="eq-item"><span class="eq-label">Total diesel 2</span><span class="eq-value" id="sum_d2">0</span></div>
+            <span class="eq-op">=</span>
+            <div class="eq-item is-result"><span class="eq-label">Total diesel 1, 2</span><span class="eq-value" id="total_d_combined">0</span></div>
+        </div>
+    </div>
+
+    <!-- ===== INVOICE & RATE ===== -->
+    <div class="card">
+        <div class="eq">
+            <div class="eq-item"><span class="eq-label">Total petrol 1, 2</span><span class="eq-value" id="t3_p_combined">0</span></div>
+            <span class="eq-op">−</span>
+            <div class="eq-item"><span class="eq-label">Invoice</span><input type="number" inputmode="decimal" id="p_invoice" oninput="calculate()" placeholder="0"></div>
+            <span class="eq-op">=</span>
+            <div class="eq-item"><span class="eq-label">Total</span><span class="eq-value" id="p_subtotal">0</span></div>
+            <span class="eq-op">×</span>
+            <div class="eq-item"><span class="eq-label">Rate of money</span><input type="number" inputmode="decimal" id="p_rate" oninput="calculate()" placeholder="0"></div>
+            <span class="eq-op">=</span>
+            <div class="eq-item is-result"><span class="eq-label">Total 1</span><span class="eq-value" id="p_final_total">0</span></div>
+        </div>
+
+        <div class="eq">
+            <div class="eq-item"><span class="eq-label">Total diesel 1, 2</span><span class="eq-value" id="t3_d_combined">0</span></div>
+            <span class="eq-op">−</span>
+            <div class="eq-item"><span class="eq-label">Invoice</span><input type="number" inputmode="decimal" id="d_invoice" oninput="calculate()" placeholder="0"></div>
+            <span class="eq-op">=</span>
+            <div class="eq-item"><span class="eq-label">Total</span><span class="eq-value" id="d_subtotal">0</span></div>
+            <span class="eq-op">×</span>
+            <div class="eq-item"><span class="eq-label">Rate of money</span><input type="number" inputmode="decimal" id="d_rate" oninput="calculate()" placeholder="0"></div>
+            <span class="eq-op">=</span>
+            <div class="eq-item is-result"><span class="eq-label">Total 2</span><span class="eq-value" id="d_final_total">0</span></div>
+        </div>
+    </div>
+
+    <!-- ===== GRAND TOTAL ===== -->
+    <div class="card">
+        <div class="eq">
+            <div class="eq-item"><span class="eq-label">Total 1</span><span class="eq-value" id="t4_total1">0</span></div>
+            <span class="eq-op">+</span>
+            <div class="eq-item"><span class="eq-label">Total 2</span><span class="eq-value" id="t4_total2">0</span></div>
+            <span class="eq-op">+</span>
+            <div class="eq-item"><span class="eq-label">Top up</span><input type="number" inputmode="decimal" id="top_up" oninput="calculate()" placeholder="0"></div>
+            <span class="eq-op">+</span>
+            <div class="eq-item"><span class="eq-label">Selling</span><input type="number" inputmode="decimal" id="selling" oninput="calculate()" placeholder="0"></div>
+            <span class="eq-op">−</span>
+            <div class="eq-item"><span class="eq-label">Discount</span><input type="number" inputmode="decimal" id="discount" oninput="calculate()" placeholder="0"></div>
+            <span class="eq-op">=</span>
+            <div class="eq-item is-result"><span class="eq-label">All total</span><span class="eq-value" id="all_total">0</span></div>
+        </div>
+    </div>
+
+    <h3 class="section-title">Part 2: Cash, Payment &amp; Debt Breakdown</h3>
+
+    <!-- ===== CASH / DOLLARS ===== -->
+    <div class="two-col">
+
+        <!-- LOCAL CURRENCY -->
+        <div class="card">
+            <div class="line">
+                <span class="row-label">Cash</span>
+                <input type="number" inputmode="decimal" id="cash_val" oninput="calculate()" placeholder="0">
+            </div>
+            <div class="line">
+                <span class="row-label">Zaad 1</span>
+                <input type="number" inputmode="decimal" id="cash_z1" oninput="calculate()" placeholder="0">
+            </div>
+            <div class="line">
+                <span class="row-label">Zaad 2</span>
+                <input type="number" inputmode="decimal" id="cash_z2" oninput="calculate()" placeholder="0">
+            </div>
+            <div class="line">
+                <span class="row-label">Edahab 1</span>
+                <input type="number" inputmode="decimal" id="cash_e1" oninput="calculate()" placeholder="0">
+            </div>
+            <div class="line">
+                <span class="row-label">Edahab 2</span>
+                <input type="number" inputmode="decimal" id="cash_e2" oninput="calculate()" placeholder="0">
+            </div>
+            <div class="line">
+                <span class="row-label">Rate of money</span>
+                <input type="number" inputmode="decimal" id="cash_rate" oninput="calculate()" placeholder="1">
+            </div>
+            <div class="line">
+                <span class="row-label">Cashes (Sum)</span>
+                <span class="value" id="cashes_sum">0</span>
+            </div>
+            <div class="line">
+                <span class="row-label">Totaling cash</span>
+                <span class="value green" id="totaling_cash">0</span>
+            </div>
+        </div>
+
+        <!-- DOLLARS -->
+        <div class="card">
+            <div class="line">
+                <span class="row-label">Dollars</span>
+                <input type="number" inputmode="decimal" id="usd_val" oninput="calculate()" placeholder="0">
+            </div>
+            <div class="line">
+                <span class="row-label">Zaad 1</span>
+                <input type="number" inputmode="decimal" id="usd_z1" oninput="calculate()" placeholder="0">
+            </div>
+            <div class="line">
+                <span class="row-label">Zaad 2</span>
+                <input type="number" inputmode="decimal" id="usd_z2" oninput="calculate()" placeholder="0">
+            </div>
+            <div class="line">
+                <span class="row-label">Edahab 1</span>
+                <input type="number" inputmode="decimal" id="usd_e1" oninput="calculate()" placeholder="0">
+            </div>
+            <div class="line">
+                <span class="row-label">Edahab 2</span>
+                <input type="number" inputmode="decimal" id="usd_e2" oninput="calculate()" placeholder="0">
+            </div>
+            <div class="line">
+                <span class="row-label">Cashes (Sum)</span>
+                <span class="value" id="usd_cashes_sum">0</span>
+            </div>
+            <div class="line">
+                <span class="row-label">Total dollars</span>
+                <span class="value green" id="total_dollars">0</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== DEBTS ===== -->
+    <button class="btn-add" onclick="addDebtRow()">+ Add Debt Row</button>
+
+    <div class="card">
+        <div class="debt-head">
+            <span>All debt</span>
+            <span>Totalling</span>
+            <span>Action</span>
+        </div>
+
+        <div id="debt_tbody">
+            <div class="debt-row">
+                <input type="text" class="debt-name" placeholder="Debt description / Name">
+                <input type="number" inputmode="decimal" class="debt-amount" oninput="calculate()" placeholder="0">
+                <button class="btn-remove" onclick="removeDebtRow(this)">✕</button>
+            </div>
+            <div class="debt-row">
+                <input type="text" class="debt-name" placeholder="Debt description / Name">
+                <input type="number" inputmode="decimal" class="debt-amount" oninput="calculate()" placeholder="0">
+                <button class="btn-remove" onclick="removeDebtRow(this)">✕</button>
+            </div>
+            <div class="debt-row">
+                <input type="text" class="debt-name" placeholder="Debt description / Name">
+                <input type="number" inputmode="decimal" class="debt-amount" oninput="calculate()" placeholder="0">
+                <button class="btn-remove" onclick="removeDebtRow(this)">✕</button>
+            </div>
+        </div>
+
+        <div class="debt-total">
+            <span>Total Debts:</span>
+            <span id="total_debt_sum">0.00</span>
+        </div>
+    </div>
+
+    <!-- ===== COMBINED TOTAL ===== -->
+    <div class="card">
+        <div class="eq">
+            <div class="eq-item"><span class="eq-label">Total of cash</span><span class="eq-value" id="summary_cash">0</span></div>
+            <span class="eq-op">+</span>
+            <div class="eq-item"><span class="eq-label">Total of dollar</span><span class="eq-value" id="summary_dollar">0</span></div>
+            <span class="eq-op">+</span>
+            <div class="eq-item"><span class="eq-label">Total Debts</span><span class="eq-value" id="summary_debts">0</span></div>
+            <span class="eq-op">=</span>
+            <div class="eq-item is-result"><span class="eq-label">All total of cash, debts and dollar</span><span class="eq-value" id="all_total_cash_dollar">0</span></div>
+        </div>
+    </div>
+
+    <!-- ===== RECONCILIATION ===== -->
+    <div class="card">
+        <div class="eq">
+            <div class="eq-item"><span class="eq-label">All total of cash, debts and dollar</span><span class="eq-value" id="rec_cash_dollar_debts">0.00</span></div>
+            <span class="eq-op">−</span>
+            <div class="eq-item"><span class="eq-label">All total of petrol and diesel</span><span class="eq-value" id="rec_petro_diesel">0.00</span></div>
+            <span class="eq-op">=</span>
+            <div class="eq-item is-result"><span class="eq-label">Difference / Balance</span><span class="eq-value" id="final_difference">0.00</span></div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    function addDebtRow() {
+        var wrap = document.getElementById('debt_tbody');
+        var div = document.createElement('div');
+        div.className = 'debt-row';
+        div.innerHTML =
+            '<input type="text" class="debt-name" placeholder="Debt description / Name">' +
+            '<input type="number" inputmode="decimal" class="debt-amount" oninput="calculate()" placeholder="0">' +
+            '<button class="btn-remove" onclick="removeDebtRow(this)">✕</button>';
+        wrap.appendChild(div);
+        calculate();
+    }
+
+    function removeDebtRow(btn) {
+        var row = btn.closest('.debt-row');
+        row.parentNode.removeChild(row);
+        calculate();
+    }
+
+    function calculate() {
+        function getValue(id) {
+            return parseFloat(document.getElementById(id).value) || 0;
         }
 
-        function removeDebtRow(btn) {
-            var row = btn.closest('tr');
-            row.parentNode.removeChild(row);
-            calculate();
-        }
+        // --- PART 1 CALCULATIONS ---
+        var totalP1 = getValue('p1_a') - getValue('p1_b');
+        var totalP2 = getValue('p2_a') - getValue('p2_b');
+        var totalD1 = getValue('d1_a') - getValue('d1_b');
+        var totalD2 = getValue('d2_a') - getValue('d2_b');
 
-        function calculate() {
-            function getValue(id) {
-                return parseFloat(document.getElementById(id).value) || 0;
-            }
+        document.getElementById('res_p1').textContent = totalP1;
+        document.getElementById('res_p2').textContent = totalP2;
+        document.getElementById('res_d1').textContent = totalD1;
+        document.getElementById('res_d2').textContent = totalD2;
 
-            // --- PART 1 CALCULATIONS ---
-            var totalP1 = getValue('p1_a') - getValue('p1_b');
-            var totalP2 = getValue('p2_a') - getValue('p2_b');
-            var totalD1 = getValue('d1_a') - getValue('d1_b');
-            var totalD2 = getValue('d2_a') - getValue('d2_b');
+        document.getElementById('sum_p1').textContent = totalP1;
+        document.getElementById('sum_p2').textContent = totalP2;
+        document.getElementById('sum_d1').textContent = totalD1;
+        document.getElementById('sum_d2').textContent = totalD2;
 
-            document.getElementById('res_p1').textContent = totalP1;
-            document.getElementById('res_p2').textContent = totalP2;
-            document.getElementById('res_d1').textContent = totalD1;
-            document.getElementById('res_d2').textContent = totalD2;
+        var totalPetrolCombined = totalP1 + totalP2;
+        var totalDieselCombined = totalD1 + totalD2;
 
-            document.getElementById('sum_p1').textContent = totalP1;
-            document.getElementById('sum_p2').textContent = totalP2;
-            document.getElementById('sum_d1').textContent = totalD1;
-            document.getElementById('sum_d2').textContent = totalD2;
+        document.getElementById('total_p_combined').textContent = totalPetrolCombined;
+        document.getElementById('total_d_combined').textContent = totalDieselCombined;
 
-            var totalPetrolCombined = totalP1 + totalP2;
-            var totalDieselCombined = totalD1 + totalD2;
+        document.getElementById('t3_p_combined').textContent = totalPetrolCombined;
+        document.getElementById('t3_d_combined').textContent = totalDieselCombined;
 
-            document.getElementById('total_p_combined').textContent = totalPetrolCombined;
-            document.getElementById('total_d_combined').textContent = totalDieselCombined;
+        var pSubtotal = totalPetrolCombined - getValue('p_invoice');
+        var dSubtotal = totalDieselCombined - getValue('d_invoice');
 
-            document.getElementById('t3_p_combined').textContent = totalPetrolCombined;
-            document.getElementById('t3_d_combined').textContent = totalDieselCombined;
+        document.getElementById('p_subtotal').textContent = pSubtotal;
+        document.getElementById('d_subtotal').textContent = dSubtotal;
 
-            var pSubtotal = totalPetrolCombined - getValue('p_invoice');
-            var dSubtotal = totalDieselCombined - getValue('d_invoice');
+        var pFinalTotal = pSubtotal * getValue('p_rate');
+        var dFinalTotal = dSubtotal * getValue('d_rate');
 
-            document.getElementById('p_subtotal').textContent = pSubtotal;
-            document.getElementById('d_subtotal').textContent = dSubtotal;
+        document.getElementById('p_final_total').textContent = pFinalTotal;
+        document.getElementById('d_final_total').textContent = dFinalTotal;
 
-            var pFinalTotal = pSubtotal * getValue('p_rate');
-            var dFinalTotal = dSubtotal * getValue('d_rate');
+        document.getElementById('t4_total1').textContent = pFinalTotal;
+        document.getElementById('t4_total2').textContent = dFinalTotal;
 
-            document.getElementById('p_final_total').textContent = pFinalTotal;
-            document.getElementById('d_final_total').textContent = dFinalTotal;
+        var grandTotal = pFinalTotal + dFinalTotal + getValue('top_up') + getValue('selling') - getValue('discount');
+        document.getElementById('all_total').textContent = grandTotal.toFixed(2);
 
-            document.getElementById('t4_total1').textContent = pFinalTotal;
-            document.getElementById('t4_total2').textContent = dFinalTotal;
+        // --- PART 2 CALCULATIONS ---
+        // 1. Local Cash Side
+        var cashSum = getValue('cash_val') + getValue('cash_z1') + getValue('cash_z2') + getValue('cash_e1') + getValue('cash_e2');
+        var cashRate = getValue('cash_rate');
+        var totalingCash = cashRate !== 0 ? (cashSum / cashRate) : 0;
 
-            var grandTotal = pFinalTotal + dFinalTotal + getValue('top_up') + getValue('selling') - getValue('discount');
-            document.getElementById('all_total').textContent = grandTotal.toFixed(2);
+        document.getElementById('cashes_sum').textContent = cashSum;
+        document.getElementById('totaling_cash').textContent = totalingCash.toFixed(2);
 
-            // --- PART 2 CALCULATIONS ---
-            // 1. Local Cash Side
-            var cashSum = getValue('cash_val') + getValue('cash_z1') + getValue('cash_z2') + getValue('cash_e1') + getValue('cash_e2');
-            var cashRate = getValue('cash_rate');
-            var totalingCash = cashRate !== 0 ? (cashSum / cashRate) : 0;
+        // 2. Dollar Side
+        var usdSum = getValue('usd_val') + getValue('usd_z1') + getValue('usd_z2') + getValue('usd_e1') + getValue('usd_e2');
 
-            document.getElementById('cashes_sum').textContent = cashSum;
-            document.getElementById('totaling_cash').textContent = totalingCash.toFixed(2);
+        document.getElementById('usd_cashes_sum').textContent = usdSum;
+        document.getElementById('total_dollars').textContent = usdSum.toFixed(2);
 
-            // 2. Dollar Side
-            var usdSum = getValue('usd_val') + getValue('usd_z1') + getValue('usd_z2') + getValue('usd_e1') + getValue('usd_e2');
+        // 3. Debt Table Total Calculation
+        var debtInputs = document.querySelectorAll('.debt-amount');
+        var totalDebts = 0;
+        debtInputs.forEach(function (input) {
+            totalDebts += parseFloat(input.value) || 0;
+        });
+        document.getElementById('total_debt_sum').textContent = totalDebts.toFixed(2);
 
-            document.getElementById('usd_cashes_sum').textContent = usdSum;
-            document.getElementById('total_dollars').textContent = usdSum.toFixed(2);
+        // 4. Combined Total in Part 2
+        document.getElementById('summary_cash').textContent = totalingCash.toFixed(2);
+        document.getElementById('summary_dollar').textContent = usdSum.toFixed(2);
+        document.getElementById('summary_debts').textContent = totalDebts.toFixed(2);
 
-            // 3. Debt Table Total Calculation
-            var debtInputs = document.querySelectorAll('.debt-amount');
-            var totalDebts = 0;
-            debtInputs.forEach(function(input) {
-                totalDebts += parseFloat(input.value) || 0;
-            });
-            document.getElementById('total_debt_sum').textContent = totalDebts.toFixed(2);
+        var finalCombined = totalingCash + usdSum + totalDebts;
+        document.getElementById('all_total_cash_dollar').textContent = finalCombined.toFixed(2);
 
-            // 4. Combined Total in Part 2
-            document.getElementById('summary_cash').textContent = totalingCash.toFixed(2);
-            document.getElementById('summary_dollar').textContent = usdSum.toFixed(2);
-            document.getElementById('summary_debts').textContent = totalDebts.toFixed(2);
+        // --- LINKING PART 2 & PART 1 ---
+        document.getElementById('rec_cash_dollar_debts').textContent = finalCombined.toFixed(2);
+        document.getElementById('rec_petro_diesel').textContent = grandTotal.toFixed(2);
 
-            var finalCombined = totalingCash + usdSum + totalDebts;
-            document.getElementById('all_total_cash_dollar').textContent = finalCombined.toFixed(2);
-
-            // --- LINKING PART 2 & PART 1 ---
-            document.getElementById('rec_cash_dollar_debts').textContent = finalCombined.toFixed(2);
-            document.getElementById('rec_petro_diesel').textContent = grandTotal.toFixed(2);
-
-            var diff = finalCombined - grandTotal;
-            document.getElementById('final_difference').textContent = diff.toFixed(2);
-        }
-    </script>
+        var diff = finalCombined - grandTotal;
+        document.getElementById('final_difference').textContent = diff.toFixed(2);
+    }
+</script>
 
 </body>
 </html>
